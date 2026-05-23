@@ -9,7 +9,7 @@ from MenuControllers.centralMenu import CentralMenu
 
 UC7_DIR = Path(__file__).resolve().parents[1] / "Seperate-Use_Cases-code" / "uc7"
 if str(UC7_DIR) not in sys.path:
-    sys.path.append(str(UC7_DIR))
+    sys.path.insert(0, str(UC7_DIR))
 
 from memberSearchController import MemberSearchController
 
