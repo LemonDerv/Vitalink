@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import tkinter as tk
 from pathlib import Path
 
 import customtkinter as ctk
@@ -16,9 +17,19 @@ from uc5.medical_record_repository import PatientRecordRepository
 from uc5.patient_record_controller import PatientRecordController
 from uc6.prescription_controller import PrescriptionController
 from uc6.prescription_repository import PrescriptionRepository
+from uc_4.controllers import DoctorMainMenuController
 
 BG_COLOR = "#F8F9FA"
 CARD_WHITE = "#FFFFFF"
+ACCENT_BLUE = "#2563EB"
+
+
+class EmbeddedUseCaseFrame(tk.Frame):
+    def title(self, *_args, **_kwargs):
+        return None
+
+    def geometry(self, *_args, **_kwargs):
+        return None
 
 
 class DoctorPortalFrame(ctk.CTkFrame):
@@ -29,6 +40,7 @@ class DoctorPortalFrame(ctk.CTkFrame):
         self.prescription_repository = PrescriptionRepository()
         self.patient_record_controller = PatientRecordController(self, self.record_repository)
         self.prescription_controller = PrescriptionController(self, self.prescription_repository)
+        self.patient_admission_controller = None
         self.configure(fg_color=BG_COLOR)
 
         self.grid_columnconfigure(0, weight=1)
@@ -58,8 +70,26 @@ class DoctorPortalFrame(ctk.CTkFrame):
         self.container.grid_columnconfigure(0, weight=1)
         self.container.grid_rowconfigure(0, weight=1)
 
+        self.patient_admission_page = ctk.CTkFrame(self.container, fg_color="transparent")
+        self.patient_admission_page.grid_columnconfigure(0, weight=1)
+        self.patient_admission_page.grid_rowconfigure(1, weight=1)
+
+        self.patient_admission_back_button = ctk.CTkButton(
+            self.patient_admission_page,
+            text="Back to Menu",
+            width=120,
+            fg_color="transparent",
+            text_color=ACCENT_BLUE,
+            command=self.return_to_menu,
+        )
+        self.patient_admission_back_button.grid(row=0, column=0, sticky="w", pady=(0, 10))
+
+        self.patient_admission_host = EmbeddedUseCaseFrame(self.patient_admission_page, bg="#ffffff", highlightthickness=0)
+        self.patient_admission_host.grid(row=1, column=0, sticky="nsew")
+
         self.sub_pages = {
             "menu": DoctorCentralMenu(self.container, self),
+            "patient_admission": self.patient_admission_page,
             "patient_record_search": patient_record_pages.PatientRecordSearchFrame(self.container, self),
             "patient_record_history": patient_record_pages.PatientRecordHistoryFrame(self.container, self),
             "patient_record_edit": patient_record_pages.PatientRecordEditFrame(self.container, self),
@@ -95,6 +125,19 @@ class DoctorPortalFrame(ctk.CTkFrame):
     def show_sub_page(self, name):
         self.sub_pages[name].tkraise()
 
+    def start_patient_admission_flow(self):
+        self.show_sub_page("patient_admission")
+        self._clear_patient_admission_host()
+        self.patient_admission_controller = DoctorMainMenuController(self.patient_admission_host)
+
+    def return_to_menu(self):
+        self._clear_patient_admission_host()
+        self.show_sub_page("menu")
+
+    def _clear_patient_admission_host(self):
+        for widget in self.patient_admission_host.winfo_children():
+            widget.destroy()
+
     def handle_logout(self):
         try:
             self.controller.show_frame("LoginPage")
@@ -109,6 +152,7 @@ class DoctorCentralMenu(CentralMenu):
             portal,
             user_t="DOC",
             tile_commands={
+                "Patient Admission": portal.start_patient_admission_flow,
                 "Prescription Issuance": portal.prescription_controller.start_flow,
                 "Patient Record Processing": portal.patient_record_controller.start_flow,
             },

@@ -8,6 +8,7 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from MenuControllers.Reader.readerHandlers import PatientAdmissionReader
+from data_paths import data_path
 
 BG_COLOR = "#F8F9FA"
 CARD_WHITE = "#FFFFFF"
@@ -288,7 +289,7 @@ class PatientInfoScreen(ctk.CTkFrame):
         if self.controller.checkFormInfo():
             self.confAdmissionScreen =AcceptScreen("Confirm Admission ? ")
             self.confAdmissionScreen.displayConfirmMsg()
-            self.patientAdmissionReader = PatientAdmissionReader("./Data/patient_Admission.csv")
+            self.patientAdmissionReader = PatientAdmissionReader(data_path("patient_Admission.csv"))
             self.patientAdmissionReader.submitAdmission({
                                             "admission_id": self.patientAdmissionReader.generate_adm_id(),
                                             "patient_id":self.patient["patient_id"].iloc[0],

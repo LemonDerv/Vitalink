@@ -9,6 +9,7 @@ from uc_4.screens import PatientAdmissionReqScreen,PatientSearchScreen,TransferP
 
 from MenuControllers.Reader.readerHandlers import WardReader,LabTestRequestReader,PatientFolderReader,DocReader,PatientAdmissionReader
 from uc_4.models import PatientHandler
+from data_paths import data_path
 
 class PatientAdmissReqController:
     def __init__(self,parent,patient):
@@ -21,9 +22,9 @@ class PatientAdmissReqController:
         # fixed doctor id. with login pass here the doctor id
         # update here
         self.doc = 'D007'
-        self.labReqReader = LabTestRequestReader("./Seperate-Use_Cases-code/uc5/lab_test_requests.csv")
+        self.labReqReader = LabTestRequestReader(data_path("lab_test_requests.csv"))
         target =self.patient["patient_id"].iloc[0]
-        folders = PatientFolderReader("./Seperate-Use_Cases-code/uc5/patient_medical_folders.csv").data
+        folders = PatientFolderReader(data_path("patient_medical_folders.csv")).data
         self.acceptScreen = AcceptScreen( "Submit Lab Test Request")
         res = self.acceptScreen.displayConfirmMsg()
 
@@ -36,7 +37,7 @@ class PatientAdmissReqController:
                                             "folder_id":folders[folders["patient_id"]== target]["folder_id"].iloc[0],
                                             "doctor_id":self.doc, 
                                             "status": 'Pending',
-                                            "request_date": datetime.now().strftime("%Y-%-m-%-d")
+                                            "request_date": datetime.now().strftime("%Y-%m-%d")
             })
         else:
             messagebox.showwarning("","No Lab Test submitted")
@@ -51,7 +52,7 @@ class PatientAdmissReqController:
 
     # helper functions for checking form integrity
     def validate_doc(self,doc):
-        if re.match(r"^D[0-9]+$",doc) and doc in DocReader("./Data/doctors.csv").getDoctorId().values:
+        if re.match(r"^D[0-9]+$",doc) and doc in DocReader(data_path("doctors.csv")).getDoctorId().values:
             return True
         else:
             return False
@@ -66,7 +67,7 @@ class TransferPatientController:
     def __init__(self,patient_data,parent):
         self.patient_data = patient_data
         self.parent = parent
-        self.wardReader = WardReader("./Data/wards.csv")
+        self.wardReader = WardReader(data_path("wards.csv"))
         self.wards = self.wardReader.data
         self.transferScreen = TransferPatientScreen(self.parent,self)
         self.transferScreen.displayPatientStatus("Patient has already treatment")
@@ -74,7 +75,9 @@ class TransferPatientController:
         
     def write_tranfer(self,patient,ward):
         fields = ["hospitalization_id","patient_id","status","ward","admission_date","discharge_date","attending_doctor_id"]
-        with open("./Data/hospitalizations.csv" , 'r' , newline='') as file , open('temp.csv' , 'w') as writeFile:
+        hospitalizations_path = data_path("hospitalizations.csv")
+        temp_path = hospitalizations_path.with_suffix(".tmp")
+        with open(hospitalizations_path , 'r' , newline='') as file , open(temp_path , 'w', newline='') as writeFile:
             writer = csv.DictWriter(writeFile,fieldnames=fields)
             reader = csv.DictReader(file)
             writer.writeheader()
@@ -84,7 +87,7 @@ class TransferPatientController:
                     writer.writerow(row)
                 else:
                     writer.writerow(row)
-            os.replace('temp.csv','./Data/hospitalizations.csv')
+            os.replace(temp_path,hospitalizations_path)
         
         messagebox.showinfo("","Trasnfer completed")
 

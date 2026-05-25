@@ -6,6 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from MenuControllers.Reader.readerHandlers import MedReader,EquipReader
 from uc_3.models import Inventory,OrderLog,Order
 from uc_3.screens import InvSearchScreen,SearchResultScreen,MessageScreen,OrderScreen,OrderConfirmationScreen,SuccessScreen
+from data_paths import data_path
 
 class InvMgMainMenuController:
     def __init__(self,parent):
@@ -15,7 +16,7 @@ class InvMgMainMenuController:
 class InvSearchController:
     def __init__(self,parent):
         self.parent = parent
-        self.inventory = Inventory(pd.DataFrame({"Medicines": [MedReader("./Data/medicines.csv").data] , "Equipment": [EquipReader("./Data/equipment.csv").data]}))
+        self.inventory = Inventory(pd.DataFrame({"Medicines": [MedReader(data_path("medicines.csv")).data] , "Equipment": [EquipReader(data_path("equipment.csv")).data]}))
         self.available_inv = self.inventory.inventory
         self.searchScreen = InvSearchScreen(self.parent,self)
         self.searchScreen.display()
@@ -44,7 +45,7 @@ class OrderController:
         self.parent = parent
         self.search_controller= controller
         self.orderScreen = OrderScreen(self.parent,self)
-        self.orderLog = OrderLog("./Data/order_log.csv")
+        self.orderLog = OrderLog(data_path("order_log.csv"))
 
     def startOrder(self,data):
         self.data = data
